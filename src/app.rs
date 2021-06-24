@@ -16,15 +16,15 @@ impl Default for TemplateApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            label: "Hello World!".to_owned(),
-            value: 2.7,
+            label: "Hello Live Server!".to_owned(),
+            value: 4.2,
         }
     }
 }
 
 impl epi::App for TemplateApp {
     fn name(&self) -> &str {
-        "egui template"
+        "Noise Gourmet"
     }
 
     /// Called by the framework to load old app state (if any).
@@ -33,7 +33,7 @@ impl epi::App for TemplateApp {
         *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
     }
 
-    /// Called by the frame work to save state before shutdown.
+    /// Called by the framework to save state before shutdown.
     #[cfg(feature = "persistence")]
     fn save(&mut self, storage: &mut dyn epi::Storage) {
         epi::set_value(storage, epi::APP_KEY, self);
@@ -57,6 +57,11 @@ impl epi::App for TemplateApp {
                         frame.quit();
                     }
                 });
+                egui::menu::menu(ui, "Edit", |ui| {
+                    if ui.button("Preferences").clicked(){
+                        
+                    }
+                })
             });
         });
 
@@ -64,29 +69,35 @@ impl epi::App for TemplateApp {
             ui.heading("Side Panel");
 
             ui.horizontal(|ui| {
-                ui.label("Write something: ");
+                ui.label("Say Something: ");
                 ui.text_edit_singleline(label);
             });
 
             ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
+            if ui.button("DO stuff").clicked() {
                 *value += 1.0;
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
                 ui.add(
-                    egui::Hyperlink::new("https://github.com/emilk/egui/").text("powered by egui"),
+                    egui::Hyperlink::new("https://github.com/Vincinator/noise-gourmet").text("Noise Gourmet"),
                 );
             });
+        });
+
+        egui::SidePanel::right("side_panel2").show(ctx, |ui| {
+            ui.heading("Side Panel 2");
+
+
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
 
-            ui.heading("egui template");
-            ui.hyperlink("https://github.com/emilk/egui_template");
+            ui.heading("noise gourmet");
+            ui.hyperlink("https://github.com/Vincinator/noise-gourmet");
             ui.add(egui::github_link_file!(
-                "https://github.com/emilk/egui_template/blob/master/",
+                "https://github.com/Vincinator/noise-gourmet",
                 "Source code."
             ));
             egui::warn_if_debug_build(ui);
