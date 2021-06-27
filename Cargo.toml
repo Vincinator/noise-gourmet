@@ -11,8 +11,17 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 eframe = "0.13.0" # Gives us egui, epi and web+native backends
+egui = { version = "0.13.0", default-features = false }
+epi = { version = "0.13.0"}
+unicode_names2 = { version = "0.4.0", default-features = false }
 
 serde = { version = "1", features = ["derive"], optional = true }
+
+# feature "http":
+image = { version = "0.23", default-features = false, features = ["jpeg", "png"], optional = true }
+
+# feature "syntax_highlighting":
+syntect = { version = "4", default-features = false, features = ["default-fancy"], optional = true }
 
 [features]
 default = []
