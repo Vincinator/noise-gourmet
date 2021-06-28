@@ -1,8 +1,11 @@
-use egui::{containers::*, widgets::*, *};
+use egui::{*, containers::*, plot::{Line, Values}, widgets::*};
 use plot::{
-    Arrows, Corner, HLine, Legend, Line, MarkerShape, Plot, PlotImage, Points, Polygon, Text,
-    VLine, Value, Values,
+    HLine, Legend, Text, Corner, Plot,
+    VLine, Value,
 };
+
+use super::noise_generator::NoiseGenerator;
+
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
@@ -51,22 +54,25 @@ impl NoiseGraph {
             .hline(HLine::new(-9.0).name("Lines horizontal"))
             .vline(VLine::new(9.0).name("Lines vertical"))
             .vline(VLine::new(-9.0).name("Lines vertical"))
-           
             .text(Text::new(Value::new(-3.0, -3.0), "wow").name("Text"))
             .text(Text::new(Value::new(-2.0, 2.5), "so graph").name("Text"))
             .text(Text::new(Value::new(3.0, 3.0), "much color").name("Text"))
             .text(Text::new(Value::new(2.5, -2.0), "such plot").name("Text"))
-         
             .legend(Legend::default().position(Corner::RightBottom))
             .show_x(false)
             .show_y(false)
             .data_aspect(1.0);
-
-            ui.add(plot);
-            });
-    
+            
+           
+            let ng = NoiseGenerator::default();
 
             
+            let line = Line::new(Values::from_values_iter(ng.sin()));
+            let plot = plot.line(line);
+
+            ui.add(plot);
+
+            });            
     }
 
     // Paramter ui

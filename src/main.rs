@@ -7,8 +7,9 @@
 //use fractal_clock::FractalClock;
 
 
-mod noise_graph;
-use noise_graph::NoiseGraph;
+mod noise;
+use noise::noise_graph::NoiseGraph;
+
 
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
