@@ -16,11 +16,13 @@ impl Default for NoiseGenerator {
 
 impl NoiseGenerator {
 
-    pub fn sin(self, x_min: f64, x_max: f64, y_min: f64, y_max: f64, resolution: f64) -> impl Iterator<Item = Value>{
+
+    pub fn map_fun(self, f:  Box<dyn Fn(f64) -> f64>, x_min: f64, x_max: f64, y_min: f64, y_max: f64, resolution: f64) -> impl Iterator<Item = Value> {
+
         ((x_min*resolution) as i64..(x_max*resolution) as i64).map(move |i| {
             let x = i as f64 / resolution ;
 
-            let mut y = x.sin();
+            let mut y = f(x);
             
             if y > y_max {
                 y = y_max;
@@ -32,40 +34,8 @@ impl NoiseGenerator {
 
             Value::new(x, y)
         })
+
     }
 
-    pub fn cos(self, x_min: f64, x_max: f64, y_min: f64, y_max: f64, resolution: f64) -> impl Iterator<Item = Value>{
-        ((x_min*resolution) as i64..(x_max*resolution) as i64).map(move |i| {
-            let x = i as f64 / resolution ;
-            let mut y = x.sin();
-            
-            if y > y_max {
-                y = y_max;
-            }
-
-            if y < y_min {
-                y = y_min;
-            }
-
-            Value::new(x, y)
-        })
-    }
-
-    pub fn square(self, x_min: f64, x_max: f64, y_min: f64, y_max: f64, resolution: f64) -> impl Iterator<Item = Value>{
-        ((x_min*resolution) as i64..(x_max*resolution) as i64).map(move |i| {
-            let x = i as f64 / resolution ;
-            let mut y = x *x;
-            if y > y_max {
-                y = y_max;
-            }
-
-            if y < y_min {
-                y = y_min;
-                
-            }
-
-            Value::new(x, y) 
-        })
-    }
-
+    
 }

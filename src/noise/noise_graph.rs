@@ -89,7 +89,7 @@ impl NoiseGraph {
 
             match self.selected {
                 NoiseFunctionNames::Sin => {
-                    let line = Line::new(Values::from_values_iter(ng.sin(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    let line = Line::new(Values::from_values_iter(ng.map_fun( ng_sin(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
                     
                     let plot = plot.line(line)
                                 .hline(limit_y_min)
@@ -101,7 +101,7 @@ impl NoiseGraph {
 
                 }
                 NoiseFunctionNames::Cos => {
-                    let line = Line::new(Values::from_values_iter(ng.cos(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    let line = Line::new(Values::from_values_iter(ng.map_fun(ng_cos(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
                     
                     let plot = plot.line(line)
                         .hline(limit_y_min)
@@ -113,7 +113,7 @@ impl NoiseGraph {
 
                 }
                 NoiseFunctionNames::Square => {
-                    let line = Line::new(Values::from_values_iter(ng.square(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    let line = Line::new(Values::from_values_iter(ng.map_fun( ng_square(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
                     
                     let plot = plot.line(line)
                         .hline(limit_y_min)
@@ -158,4 +158,17 @@ impl NoiseGraph {
 
 
 
+}
+
+
+
+pub fn ng_sin() -> Box<dyn Fn(f64) -> f64>{
+    Box::new(|x: f64| x.sin())
+}
+
+pub fn ng_cos() -> Box<dyn Fn(f64) -> f64>{
+ Box::new(|x: f64| x.cos())
+}
+pub fn ng_square() -> Box<dyn Fn(f64) -> f64>{
+ Box::new(|x: f64| x*x)
 }
