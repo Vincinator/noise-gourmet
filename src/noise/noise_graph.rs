@@ -1,7 +1,7 @@
 use egui::{*, plot::{Line, Values}};
 use plot::{
-    HLine, Legend, Text, Corner, Plot,
-    VLine, Value,
+    HLine, Legend, Corner, Plot,
+    VLine, 
 };
 
 use super::noise_generator::NoiseGenerator;
@@ -33,6 +33,7 @@ pub struct NoiseGraph {
     x_max: f64,
     y_min: f64,
     y_max: f64,
+    resolution: f64,
 }
 
 impl Default for NoiseGraph {
@@ -40,10 +41,11 @@ impl Default for NoiseGraph {
         Self {
             paused: false,
             selected: NoiseFunctionNames::Sin,
-            x_min: -10000.,
-            x_max: 10000.,
-            y_min: -100.,
-            y_max: 100.,
+            x_min: -20.,
+            x_max: 20.,
+            y_min: -10.,
+            y_max: 10.,
+            resolution: 1.,
         }
     }
 }
@@ -72,14 +74,6 @@ impl NoiseGraph {
             .show(ctx, |ui| self.params_ui(ui));
         egui::CentralPanel::default().show(ctx, |ui| {
             let plot = Plot::new("Items Demo")
-            .hline(HLine::new(9.0).name("Lines horizontal"))
-            .hline(HLine::new(-9.0).name("Lines horizontal"))
-            .vline(VLine::new(9.0).name("Lines vertical"))
-            .vline(VLine::new(-9.0).name("Lines vertical"))
-            .text(Text::new(Value::new(-3.0, -3.0), "wow").name("Text"))
-            .text(Text::new(Value::new(-2.0, 2.5), "so graph").name("Text"))
-            .text(Text::new(Value::new(3.0, 3.0), "much color").name("Text"))
-            .text(Text::new(Value::new(2.5, -2.0), "such plot").name("Text"))
             .legend(Legend::default().position(Corner::RightBottom))
             .show_x(false)
             .show_y(false)
@@ -87,29 +81,52 @@ impl NoiseGraph {
             
     
             let ng = NoiseGenerator::default();
-            
+
+            let limit_y_max = HLine::new(self.y_max);
+            let limit_y_min = HLine::new(self.y_min);
+            let limit_x_max = VLine::new(self.x_max);
+            let limit_x_min = VLine::new(self.x_min);
+
             match self.selected {
                 NoiseFunctionNames::Sin => {
-                    let line = Line::new(Values::from_values_iter(ng.sin(self.x_min, self.x_max, self.y_min, self.y_max)));
-                    let plot = plot.line(line);
+                    let line = Line::new(Values::from_values_iter(ng.sin(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    
+                    let plot = plot.line(line)
+                                .hline(limit_y_min)
+                                .hline(limit_y_max)
+                                .vline(limit_x_max)
+                                .vline(limit_x_min);
+                   
                     ui.add(plot);
 
                 }
                 NoiseFunctionNames::Cos => {
-                    let line = Line::new(Values::from_values_iter(ng.cos(self.x_min, self.x_max, self.y_min, self.y_max)));
-                    let plot = plot.line(line);
+                    let line = Line::new(Values::from_values_iter(ng.cos(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    
+                    let plot = plot.line(line)
+                        .hline(limit_y_min)
+                        .hline(limit_y_max)
+                        .vline(limit_x_max)
+                        .vline(limit_x_min);
+
                     ui.add(plot);
 
                 }
                 NoiseFunctionNames::Square => {
-                    let line = Line::new(Values::from_values_iter(ng.square(self.x_min, self.x_max, self.y_min, self.y_max)));
-                    let plot = plot.line(line);
+                    let line = Line::new(Values::from_values_iter(ng.square(self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
+                    
+                    let plot = plot.line(line)
+                        .hline(limit_y_min)
+                        .hline(limit_y_max)
+                        .vline(limit_x_max)
+                        .vline(limit_x_min);
+                    
                     ui.add(plot);
                 }
 
             }
 
-  
+
 
 
             });            
@@ -128,12 +145,14 @@ impl NoiseGraph {
             }
         );
 
-        ui.add(egui::Slider::new(&mut self.x_min, -100000.0..=0.0).text("X Min"));
-        ui.add(egui::Slider::new(&mut self.x_max, 0.0..=100000.0).text("X Max"));
+        ui.add(egui::Slider::new(&mut self.x_min, -100.0..=0.0).text("X Min"));
+        ui.add(egui::Slider::new(&mut self.x_max, 0.0..=100.0).text("X Max"));
 
 
         ui.add(egui::Slider::new(&mut self.y_min, -100.0..=0.0).text("Y Min"));
         ui.add(egui::Slider::new(&mut self.y_max, 0.0..=100.0).text("Y Max"));
+        ui.add(egui::Separator::default());
+        ui.add(egui::Slider::new(&mut self.resolution, 1.0..=100.0).text("Resolution"));
 
     }
 
