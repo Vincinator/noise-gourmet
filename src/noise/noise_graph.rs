@@ -1,27 +1,49 @@
-use egui::{*, containers::*, plot::{Line, Values}, widgets::*};
+use egui::{*, plot::{Line, Values}};
 use plot::{
     HLine, Legend, Text, Corner, Plot,
     VLine, Value,
 };
 
 use super::noise_generator::NoiseGenerator;
+#[derive(PartialEq,Debug)]
+enum NoiseFunctionNames {
+    Sin = 0,
+    Cos = 1,
+    Square = 2,
+}
 
+impl ToString for NoiseFunctionNames {
+    fn to_string(&self) -> std::string::String{
+        match self{
+            NoiseFunctionNames::Sin => String::from("Sin"),
+            NoiseFunctionNames::Cos => String::from("Cos"),
+            NoiseFunctionNames::Square => String::from("Square"),
+        }
+
+    }
+}
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))] // if we add new fields, give them default values when deserializing old state
 pub struct NoiseGraph {
     paused: bool,
-    selected: i32,
-
-
+    selected: NoiseFunctionNames,
+    x_min: f64,
+    x_max: f64,
+    y_min: f64,
+    y_max: f64,
 }
 
 impl Default for NoiseGraph {
     fn default() -> Self {
         Self {
             paused: false,
-            selected: 1,
+            selected: NoiseFunctionNames::Sin,
+            x_min: -10000.,
+            x_max: 10000.,
+            y_min: -100.,
+            y_max: 100.,
         }
     }
 }
@@ -33,7 +55,7 @@ impl epi::App for NoiseGraph {
 
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
         egui::CentralPanel::default()
             .frame(Frame::dark_canvas(&ctx.style()))
             .show(ctx, |ui| self.ui(ctx, ui));
@@ -44,7 +66,7 @@ impl epi::App for NoiseGraph {
 impl NoiseGraph {
 
     // ??? Draw Ui elements in this function ??? Check update from NoiseGraph  
-    pub fn ui(&mut self, ctx: &egui::CtxRef, ui: &mut Ui){
+    pub fn ui(&mut self, ctx: &egui::CtxRef, _ui: &mut Ui){
 
         egui::SidePanel::left("params_panel")
             .show(ctx, |ui| self.params_ui(ui));
@@ -63,14 +85,32 @@ impl NoiseGraph {
             .show_y(false)
             .data_aspect(1.0);
             
-           
+    
             let ng = NoiseGenerator::default();
-
             
-            let line = Line::new(Values::from_values_iter(ng.sin()));
-            let plot = plot.line(line);
+            match self.selected {
+                NoiseFunctionNames::Sin => {
+                    let line = Line::new(Values::from_values_iter(ng.sin(self.x_min, self.x_max, self.y_min, self.y_max)));
+                    let plot = plot.line(line);
+                    ui.add(plot);
 
-            ui.add(plot);
+                }
+                NoiseFunctionNames::Cos => {
+                    let line = Line::new(Values::from_values_iter(ng.cos(self.x_min, self.x_max, self.y_min, self.y_max)));
+                    let plot = plot.line(line);
+                    ui.add(plot);
+
+                }
+                NoiseFunctionNames::Square => {
+                    let line = Line::new(Values::from_values_iter(ng.square(self.x_min, self.x_max, self.y_min, self.y_max)));
+                    let plot = plot.line(line);
+                    ui.add(plot);
+                }
+
+            }
+
+  
+
 
             });            
     }
@@ -82,11 +122,18 @@ impl NoiseGraph {
         ComboBox::from_label("Select Noise")
             .selected_text(format!("{:?}", self.selected))
             .show_ui(ui, |ui| {
-                ui.selectable_value(&mut self.selected, 1, "First");
-                ui.selectable_value(&mut self.selected, 2, "Second");
-                ui.selectable_value(&mut self.selected, 3, "Third");
+                ui.selectable_value(&mut self.selected, NoiseFunctionNames::Sin, NoiseFunctionNames::Sin.to_string());
+                ui.selectable_value(&mut self.selected, NoiseFunctionNames::Cos, NoiseFunctionNames::Cos.to_string());
+                ui.selectable_value(&mut self.selected, NoiseFunctionNames::Square, NoiseFunctionNames::Square.to_string());
             }
         );
+
+        ui.add(egui::Slider::new(&mut self.x_min, -100000.0..=0.0).text("X Min"));
+        ui.add(egui::Slider::new(&mut self.x_max, 0.0..=100000.0).text("X Max"));
+
+
+        ui.add(egui::Slider::new(&mut self.y_min, -100.0..=0.0).text("Y Min"));
+        ui.add(egui::Slider::new(&mut self.y_max, 0.0..=100.0).text("Y Max"));
 
     }
 
