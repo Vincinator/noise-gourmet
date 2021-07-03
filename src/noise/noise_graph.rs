@@ -27,25 +27,19 @@ impl ToString for NoiseFunctionNames {
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))] // if we add new fields, give them default values when deserializing old state
 pub struct NoiseGraph {
-    paused: bool,
     selected: NoiseFunctionNames,
-    x_min: f64,
-    x_max: f64,
-    y_min: f64,
-    y_max: f64,
-    resolution: f64,
+    ng: NoiseGenerator,
+    show_maxima: bool,
 }
 
 impl Default for NoiseGraph {
     fn default() -> Self {
         Self {
-            paused: false,
             selected: NoiseFunctionNames::Sin,
-            x_min: -20.,
-            x_max: 20.,
-            y_min: -10.,
-            y_max: 10.,
-            resolution: 1.,
+
+            ng: NoiseGenerator::default(),
+            show_maxima: true,
+
         }
     }
 }
@@ -80,61 +74,44 @@ impl NoiseGraph {
             .data_aspect(1.0);
             
     
-            let ng = NoiseGenerator::default();
 
-            let limit_y_max = HLine::new(self.y_max);
-            let limit_y_min = HLine::new(self.y_min);
-            let limit_x_max = VLine::new(self.x_max);
-            let limit_x_min = VLine::new(self.x_min);
+            let limit_y_max = HLine::new(self.ng.y_max);
+            let limit_y_min = HLine::new(self.ng.y_min);
+            let limit_x_max = VLine::new(self.ng.x_max);
+            let limit_x_min = VLine::new(self.ng.x_min);
+            let line;
 
             match self.selected {
                 NoiseFunctionNames::Sin => {
-                    let line = Line::new(Values::from_values_iter(ng.map_fun( ng_sin(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
-                    
-                    let plot = plot.line(line)
-                                .hline(limit_y_min)
-                                .hline(limit_y_max)
-                                .vline(limit_x_max)
-                                .vline(limit_x_min);
+                    let values = self.ng.generate_points( ng_sin());
                    
-                    ui.add(plot);
-
+                    line = Line::new(Values::from_values(values));
                 }
                 NoiseFunctionNames::Cos => {
-                    let line = Line::new(Values::from_values_iter(ng.map_fun(ng_cos(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
-                    
-                    let plot = plot.line(line)
-                        .hline(limit_y_min)
-                        .hline(limit_y_max)
-                        .vline(limit_x_max)
-                        .vline(limit_x_min);
+                    let values = self.ng.generate_points(ng_cos());
 
-                    ui.add(plot);
 
+                    line = Line::new(Values::from_values(values));
                 }
                 NoiseFunctionNames::Square => {
-                    let line = Line::new(Values::from_values_iter(ng.map_fun( ng_square(), self.x_min, self.x_max, self.y_min, self.y_max, self.resolution)));
-                    
-                    let plot = plot.line(line)
-                        .hline(limit_y_min)
-                        .hline(limit_y_max)
-                        .vline(limit_x_max)
-                        .vline(limit_x_min);
-                    
-                    ui.add(plot);
+                    let values = self.ng.generate_points( ng_square());
+
+                    line = Line::new(Values::from_values(values));
                 }
-
-            }
-
-
-
-
-            });            
+            }    
+                let plot = plot.line(line)
+                    .hline(limit_y_min)
+                    .hline(limit_y_max)
+                    .vline(limit_x_max)
+                    .vline(limit_x_min);
+                    ui.add(plot);
+        
+        });    
+                  
     }
 
     // Paramter ui
     fn params_ui(&mut self, ui: &mut Ui){
-        ui.checkbox(&mut self.paused, "Paused");
 
         ComboBox::from_label("Select Noise")
             .selected_text(format!("{:?}", self.selected))
@@ -144,19 +121,21 @@ impl NoiseGraph {
                 ui.selectable_value(&mut self.selected, NoiseFunctionNames::Square, NoiseFunctionNames::Square.to_string());
             }
         );
-
-        ui.add(egui::Slider::new(&mut self.x_min, -100.0..=0.0).text("X Min"));
-        ui.add(egui::Slider::new(&mut self.x_max, 0.0..=100.0).text("X Max"));
-
-
-        ui.add(egui::Slider::new(&mut self.y_min, -100.0..=0.0).text("Y Min"));
-        ui.add(egui::Slider::new(&mut self.y_max, 0.0..=100.0).text("Y Max"));
         ui.add(egui::Separator::default());
-        ui.add(egui::Slider::new(&mut self.resolution, 1.0..=100.0).text("Resolution"));
+        ui.checkbox(&mut self.show_maxima, "Show Maxima");
+        ui.add(egui::Separator::default());
+
+
+        ui.add(egui::Slider::new(&mut self.ng.x_min, -100.0..=0.0).text("X Min"));
+        ui.add(egui::Slider::new(&mut self.ng.x_max, 0.0..=100.0).text("X Max"));
+
+
+        ui.add(egui::Slider::new(&mut self.ng.y_min, -100.0..=0.0).text("Y Min"));
+        ui.add(egui::Slider::new(&mut self.ng.y_max, 0.0..=100.0).text("Y Max"));
+        ui.add(egui::Separator::default());
+        ui.add(egui::Slider::new(&mut self.ng.resolution, 1.0..=100.0).text("Resolution"));
 
     }
-
-
 
 }
 
@@ -167,8 +146,8 @@ pub fn ng_sin() -> Box<dyn Fn(f64) -> f64>{
 }
 
 pub fn ng_cos() -> Box<dyn Fn(f64) -> f64>{
- Box::new(|x: f64| x.cos())
+    Box::new(|x: f64| x.cos())
 }
 pub fn ng_square() -> Box<dyn Fn(f64) -> f64>{
- Box::new(|x: f64| x*x)
+    Box::new(|x: f64| x*x)
 }

@@ -10,8 +10,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-eframe = "0.13.0" # Gives us egui, epi and web+native backends
-egui = { version = "0.13.0", default-features = false }
+eframe = "0.13.1" # Gives us egui, epi and web+native backends
+egui = { version = "0.13.1", default-features = false }
 epi = { version = "0.13.0"}
 unicode_names2 = { version = "0.4.0", default-features = false }
 
